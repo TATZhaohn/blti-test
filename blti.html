@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>BLTI · 搞机人格测试</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔓</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+            background: linear-gradient(145deg, #0f0f1a 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            color: #ffffff;
+        }
+        .app { max-width: 480px; width: 100%; margin: 0 auto; }
+        .card {
+            background: rgba(25, 25, 45, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 32px;
+            padding: 32px 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+        }
+        .page { display: none; }
+        .page.active { display: block; }
+        .hero { text-align: center; }
+        .logo {
+            font-size: 72px; font-weight: 800; letter-spacing: 4px;
+            background: linear-gradient(135deg, #a8c0ff 0%, #3f2b96 100%);
+            -webkit-background-clip: text; background-clip: text;
+            color: transparent; margin-bottom: 8px;
+        }
+        .subtitle { font-size: 14px; opacity: 0.7; letter-spacing: 2px; margin-bottom: 24px; }
+        .hero-desc { font-size: 16px; line-height: 1.6; opacity: 0.9; margin-bottom: 32px; padding: 0 12px; }
+        .hero-tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 36px; }
+        .tag {
+            background: rgba(255, 255, 255, 0.06); padding: 6px 14px;
+            border-radius: 30px; font-size: 13px; border: 1px solid rgba(255,255,255,0.05);
+            color: #b0b0d0;
+        }
+        .btn {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            border: none; color: white; font-size: 18px; font-weight: 600;
+            padding: 16px 32px; border-radius: 60px; width: 100%;
+            cursor: pointer; box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+            transition: all 0.15s ease; border: 1px solid rgba(255,255,255,0.1);
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn.secondary {
+            background: rgba(255, 255, 255, 0.06); box-shadow: none;
+            border: 1px solid rgba(255, 255, 255, 0.1); margin-top: 12px;
+        }
+        .quiz-header { margin-bottom: 28px; }
+        .progress-bar { height: 4px; background: rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #4f46e5, #a78bfa); border-radius: 10px; width: 0%; transition: width 0.2s; }
+        .counter { font-size: 14px; opacity: 0.6; text-align: right; }
+        .question { font-size: 22px; font-weight: 600; line-height: 1.4; margin-bottom: 28px; min-height: 70px; }
+        .options { display: flex; flex-direction: column; gap: 12px; }
+        .option {
+            background: rgba(255, 255, 255, 0.03); border: 1.5px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px; padding: 18px 20px; font-size: 16px; cursor: pointer;
+            transition: all 0.12s; color: #e0e0f0; text-align: left; line-height: 1.4;
+        }
+        .option:active { background: rgba(79, 70, 229, 0.15); border-color: #4f46e5; transform: scale(0.99); }
+        .result-header { text-align: center; margin-bottom: 28px; }
+        .personality-code {
+            font-size: 52px; font-weight: 800; letter-spacing: 6px;
+            background: linear-gradient(135deg, #fff 0%, #a8c0ff 100%);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .personality-name { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+        .personality-desc { font-size: 15px; opacity: 0.8; line-height: 1.6; margin-bottom: 24px; padding: 0 8px; }
+        .review-box {
+            background: rgba(0, 0, 0, 0.2); border-radius: 20px; padding: 20px;
+            margin-bottom: 24px; border-left: 4px solid #4f46e5;
+        }
+        .review-label { font-size: 12px; opacity: 0.5; letter-spacing: 1px; margin-bottom: 8px; }
+        .review-text { font-size: 16px; font-style: italic; line-height: 1.5; }
+        .share-area { display: flex; flex-direction: column; gap: 12px; }
+        .danmu { font-size: 13px; opacity: 0.5; text-align: center; margin-top: 16px; }
+        .hidden-canvas { position: fixed; left: -9999px; top: 0; }
+        .footer-note { text-align: center; margin-top: 24px; opacity: 0.3; font-size: 12px; }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div id="homePage" class="page active">
+        <div class="card hero">
+            <div class="logo">BLTI</div>
+            <div class="subtitle">BootLoader Trouble Indicator</div>
+            <div class="hero-desc">解锁你的搞机隐藏人格<br>从养老守门人到9008常驻民，一测便知</div>
+            <div class="hero-tags">
+                <span class="tag">#Magisk</span><span class="tag">#Bootloop</span><span class="tag">#救砖</span>
+                <span class="tag">#模块</span><span class="tag">#9008</span><span class="tag">#类原生</span>
+            </div>
+            <button class="btn" id="startBtn">开始测试 →</button>
+            <div style="margin-top: 20px; font-size: 12px; opacity: 0.4;">仅供娱乐 · 搞机佬专属</div>
+        </div>
+        <div class="footer-note">🔓 解锁前请备份 Persist</div>
+    </div>
+
+    <div id="quizPage" class="page">
+        <div class="card">
+            <div class="quiz-header">
+                <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+                <div class="counter" id="questionCounter">1 / 12</div>
+            </div>
+            <div id="questionText" class="question">加载中...</div>
+            <div class="options" id="optionsContainer"></div>
+        </div>
+    </div>
+
+    <div id="resultPage" class="page">
+        <div class="card" id="resultCard">
+            <div class="result-header">
+                <div class="personality-code" id="resultCode">BLTI</div>
+                <div class="personality-name" id="resultName">OTA守门人</div>
+                <div class="personality-desc" id="resultDesc">你信奉原厂OTA的圣光...</div>
+            </div>
+            <div class="review-box">
+                <div class="review-label">搞机佬锐评</div>
+                <div class="review-text" id="resultReview">“酷安人均水平”</div>
+            </div>
+            <div class="share-area">
+                <button class="btn" id="shareBtn">📸 生成卡片分享</button>
+                <button class="btn secondary" id="retakeBtn">⟲ 重新测试</button>
+            </div>
+            <div class="danmu" id="randomDanmu">「 刷机一时爽，一直刷机一直爽 」</div>
+        </div>
+    </div>
+</div>
+
+<div id="captureCard" class="hidden-canvas">
+    <div style="width: 400px; background: #19192d; border-radius: 32px; padding: 32px 24px; color: white; border: 1px solid #2a2a4a; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+        <div style="text-align: center; margin-bottom: 24px;">
+            <div style="font-size: 48px; font-weight: 800; letter-spacing: 4px; background: linear-gradient(135deg, #a8c0ff, #3f2b96); -webkit-background-clip: text; background-clip: text; color: transparent;" id="capCode">BLTI</div>
+            <div style="font-size: 24px; font-weight: 700; margin: 8px 0;" id="capName">OTA守门人</div>
+            <div style="font-size: 14px; opacity: 0.7; line-height: 1.5; padding: 0 8px;" id="capDesc"></div>
+        </div>
+        <div style="background: #0f0f1a; border-radius: 20px; padding: 20px; border-left: 4px solid #4f46e5;">
+            <div style="font-size: 11px; opacity: 0.4; letter-spacing: 1px;">搞机佬锐评</div>
+            <div style="font-size: 15px; font-style: italic; margin-top: 6px;" id="capReview"></div>
+        </div>
+        <div style="text-align: center; margin-top: 20px; font-size: 12px; opacity: 0.3;">BLTI · 搞机人格测试</div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        // ---------- 题库（12题，每题3选项）----------
+        const questions = [
+            // 维度 B/M/BL - 搞机态度
+            { text: "新手机到手，你的第一件事是？", options: ["关广告、关推送，设置好就开始用", "解锁 BL，刷 Magisk + 几个必备模块就收手", "解锁 BL，找第三方 ROM，从头到脚定制"], dim: "B" },
+            { text: "看到酷安有人发新 ROM 体验帖，你会？", options: ["划过，继续用我的官方稳定版", "收藏帖子，等反馈 bug 少了再刷", "直接下载，今晚必须刷上"], dim: "B" },
+            { text: "你对系统更新的态度？", options: ["有更新就更，官方优化我放心", "先看更新日志，有大功能才更", "官方的能用？我等类原生/官改"], dim: "B" },
+            // 维度 L/D/LP - 排障方式
+            { text: "刷了个新模块，手机无限重启了，你第一反应？", options: ["进安全模式禁用模块，看看日志冲突在哪", "酷安发帖 / 截屏发群里：'大佬们救救'", "进 Recovery 双清，不行就重刷 ROM"], dim: "L" },
+            { text: "刷机过程中报错，你会？", options: ["翻译报错信息，搜 XDA / GitHub", "截图问群友，等一个'我也遇到过'", "换个 Recovery 或者换个包再试一次"], dim: "L" },
+            { text: "手机变砖了，你的心态是？", options: ["冷静回忆步骤，找 9008 救砖教程", "发酷安求助，顺便发个'收救砖服务'的评论", "完了完了，先刷个别的包试试能不能亮屏"], dim: "L" },
+            // 维度 T/G/F - 操作习惯
+            { text: "刷 Recovery 你习惯怎么操作？", options: ["fastboot flash recovery 手敲命令行", "用一键刷入工具，有图形界面就行", "跟着教程复制粘贴命令，看不懂但能执行"], dim: "T" },
+            { text: "遇到需要修改系统文件的教程，你会？", options: ["adb pull 出来用编辑器改完 push 回去", "用 MT 管理器 / 爱玩机工具箱直接改", "直接下载别人改好的文件覆盖"], dim: "T" },
+            { text: "你对'一键 XX'类工具的态度？", options: ["不信任，谁知道它在后台干了什么", "看作者信誉，知名的会用", "真香，能一键搞定为什么要手动"], dim: "T" },
+            // 维度 I/W/H - 隐私态度
+            { text: "银行 App 检测到 Root 打不开，你会？", options: ["Shamiko + HMA + PIF 全套安排，必须过检测", "算了，用另一台没 Root 的手机处理银行", "换个不检测的银行 App，惯着它了？"], dim: "I" },
+            { text: "游戏提示'环境异常'封号 7 天，你会？", options: ["研究检测机制，找新的隐藏方案", "封就封吧，正好休息几天", "解封继续干，我有小号"], dim: "I" },
+            { text: "你对'这个模块要读取通讯录权限'的态度？", options: ["必须看源码或用权限管理工具限制", "看模块口碑，用的人多就装", "管他呢，能用就行"], dim: "I" }
+        ];
+
+        // 维度映射: 0->A(左倾) 1->B(中间) 2->C(右倾)
+        const dimMap = {
+            'B': ['B', 'M', 'BL'],
+            'L': ['L', 'D', 'LP'],
+            'T': ['T', 'G', 'F'],
+            'I': ['I', 'W', 'H']
+        };
+
+        // 人格库 (9种)
+        const personalities = {
+            'B-L-T-I':   { name: '🛡️ OTA 守门人', desc: 'Bootloader 是信仰，官方 OTA 是圣光。你的人生格言："稳定压倒一切。"', review: '售后最爱客户，酷安评分9.9分养老标兵。' },
+            'M-D-G-W':   { name: '📦 模块收集癖', desc: 'Magisk 模块 30+，LSPosed 作用域拉满。开机动画长达3分钟，但你乐在其中。', review: '模块冲突排查大师（自封），手机比电脑还能折腾。' },
+            'BL-LP-F-H': { name: '🔥 9008 常驻民', desc: '电脑桌面常驻 9008 驱动和 MI Flash。变砖如呼吸，深刷如饮水。', review: '变砖？不存在的，你的人生只有"重刷"和"深刷"。' },
+            'M-L-G-I':   { name: '🥷 隐藏大师', desc: 'Shamiko + HMA + PIF 玩得飞起。银行 App 在你手机上比官方还流畅。', review: '过检测艺术家，Play Integrity 永远 PASS。' },
+            'BL-D-G-W':  { name: '🐒 刷机吗喽', desc: '跟着教程一步步走，从不思考为什么。能开机就是好包，变砖就是包不行。', review: '刷机吗喽，快乐就完事了。从不反思，下一包继续。' },
+            'M-D-F-W':   { name: '🎨 主题美化狂', desc: '不关心底层优化，状态栏和图标必须骚。为了一套图标能折腾一整天。', review: '颜值即正义，截图比系统重要。' },
+            'B-D-F-I':   { name: '📱 备用机战神', desc: '主力机官方养老，备用机往死里折腾。主力机是生活，备用机是梦想。', review: '双持玩家，两手都要抓，两手都硬。' },
+            'BL-LP-T-H': { name: '💀 售后黑名单', desc: '基带丢了，IMEI 空了。售后看见你就头疼，直接判"人为损坏"。', review: '售后编外人员，靠演技骗保修（从未成功）。' },
+            'B-L-G-W':   { name: '☁️ 云玩机佬', desc: '从不刷机，但在酷安指点江山。收藏了 300 个教程，一个都没用过。', review: '键盘刷机王，云评第一人。口头禅："这个包有 bug。"' }
+        };
+
+        const danmus = [
+            "「 刷机一时爽，一直刷机一直爽 」", "「 备份了吗？ 」", "「 先双清试试 」",
+            "「 这个模块有bug 」", "「 还是官方养老吧 」", "「 9008 解千愁 」",
+            "「 黄条是荣耀 」", "「 解锁BL不保修哦 」", "「 面具作者在偷乐 」"
+        ];
+
+        let currentAnswers = new Array(12).fill(null);
+        let currentIndex = 0;
+
+        const homePage = document.getElementById('homePage');
+        const quizPage = document.getElementById('quizPage');
+        const resultPage = document.getElementById('resultPage');
+        const questionText = document.getElementById('questionText');
+        const optionsDiv = document.getElementById('optionsContainer');
+        const progressFill = document.getElementById('progressFill');
+        const counterSpan = document.getElementById('questionCounter');
+        const startBtn = document.getElementById('startBtn');
+        const retakeBtn = document.getElementById('retakeBtn');
+        const shareBtn = document.getElementById('shareBtn');
+
+        function switchPage(id) {
+            homePage.classList.remove('active');
+            quizPage.classList.remove('active');
+            resultPage.classList.remove('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        function resetTest() {
+            currentAnswers = new Array(12).fill(null);
+            currentIndex = 0;
+        }
+
+        function renderQuestion(index) {
+            const q = questions[index];
+            questionText.textContent = q.text;
+            counterSpan.textContent = `${index+1} / ${questions.length}`;
+            progressFill.style.width = `${((index+1)/questions.length)*100}%`;
+            let html = '';
+            q.options.forEach((opt, i) => {
+                const selected = currentAnswers[index] === i;
+                html += `<div class="option" data-opt-index="${i}" style="${selected ? 'background: rgba(79,70,229,0.2); border-color: #4f46e5;' : ''}">${opt}</div>`;
+            });
+            optionsDiv.innerHTML = html;
+            document.querySelectorAll('.option').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    const optIdx = parseInt(el.dataset.optIndex);
+                    currentAnswers[currentIndex] = optIdx;
+                    if (currentIndex < questions.length - 1) {
+                        currentIndex++;
+                        renderQuestion(currentIndex);
+                    } else {
+                        calculateResult();
+                    }
+                });
+            });
+        }
+
+        function calculateResult() {
+            const counts = { B: [0,0,0], L: [0,0,0], T: [0,0,0], I: [0,0,0] };
+            questions.forEach((q, idx) => {
+                const ans = currentAnswers[idx];
+                if (ans === null) return;
+                counts[q.dim][ans]++;
+            });
+
+            const getTrait = (dim) => {
+                const arr = counts[dim];
+                const max = Math.max(...arr);
+                const idx = arr.indexOf(max);
+                return dimMap[dim][idx];
+            };
+
+            const code = `${getTrait('B')}-${getTrait('L')}-${getTrait('T')}-${getTrait('I')}`;
+            const p = personalities[code] || { name: '未知搞机体', desc: '你的搞机灵魂还在加载中……', review: '再测一次试试？' };
+
+            document.getElementById('resultCode').textContent = code.replace(/-/g, '');
+            document.getElementById('resultName').textContent = p.name;
+            document.getElementById('resultDesc').textContent = p.desc;
+            document.getElementById('resultReview').textContent = p.review;
+            document.getElementById('randomDanmu').textContent = danmus[Math.floor(Math.random() * danmus.length)];
+
+            document.getElementById('capCode').textContent = code.replace(/-/g, '');
+            document.getElementById('capName').textContent = p.name;
+            document.getElementById('capDesc').textContent = p.desc;
+            document.getElementById('capReview').textContent = p.review;
+
+            switchPage('resultPage');
+        }
+
+        async function captureResult() {
+            const el = document.getElementById('captureCard');
+            try {
+                const canvas = await html2canvas(el.firstElementChild, { scale: 2.5, backgroundColor: '#19192d' });
+                const link = document.createElement('a');
+                link.download = `BLTI-${document.getElementById('resultCode').textContent}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch(e) { alert('截图失败，可手动截图～'); }
+        }
+
+        startBtn.addEventListener('click', ()=>{
+            resetTest();
+            renderQuestion(0);
+            switchPage('quizPage');
+        });
+        retakeBtn.addEventListener('click', ()=>{
+            resetTest();
+            renderQuestion(0);
+            switchPage('quizPage');
+        });
+        shareBtn.addEventListener('click', captureResult);
+    })();
+</script>
+</body>
+</html>
